@@ -1,0 +1,31 @@
+html, body {
+    padding: 0;
+    margin: 0;
+    font-family: Arial;
+    color: #666;
+}
+
+#left {
+    background-color: #844;
+}
+
+#right {
+    background-color: #484;
+}
+
+.directionButton {
+    width: 50%;
+    height: 200px;
+    float: left;
+}
+
+#console {
+    clear: both;
+}
+
+#state {
+    clear: both;
+    width: 100%;
+    height: 100px;
+    background-color: #fff;
+}
