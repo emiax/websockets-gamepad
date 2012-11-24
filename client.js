@@ -8,8 +8,8 @@ $(document).ready(function() {
         pln("Your browser does not support websockets");
         return;
     }
-
-    var ws = new WebSocket("ws://192.168.0.101:" + config.wsPort);
+ 
+    var ws = new WebSocket("ws://" + config.hostName + ":" + config.wsPort);
 
     ws.onopen = function () {
         pln('Websocket connection established!');
