@@ -1,6 +1,6 @@
 var config = require('./config.js');
-
-/* Set up web server */ 
+var net = require('net');
+/* Set up web server */
 
 var express = require('express'),
     WebSocketServer = require('ws').Server,
@@ -26,6 +26,29 @@ app.get('/style.css', function (req, res) {
 app.listen(config.httpPort);
 
 
+/**
+ *  Setup TCP-Socket
+ */
+
+var server = net.createServer();
+//to be able to reach socket when clients send colors
+var reportSocket;
+//Start listening
+server.listen(config.reportPort, config.reportHost);
+
+server.on('connection', function(sock){
+    console.log('Client Connected');
+    sock.write('welcome\r\n');
+    reportSocket = sock;
+    //refuse other connections (use maxConnections instead?)
+    server.close();
+});
+server.on('close', function(data){
+    console.log('Client Disconnect, wait for new user...');
+    //start to listen again
+    this.listen(config.reportPort, config.reportHost);
+});
+
 /*
  * Set up WebSocket Server
  */
@@ -39,15 +62,28 @@ wss.on('connection', function(ws) {
     var socketId = nextSocketId++;
     sockets[socketId] = ws;
     ws.send(color);
-
+    console.log(">>> Client connect with socketId: " + socketId);
     ws.on('message', function(message) {
         console.log("---");
         console.log('message recieved: ' + message);
-        
+
         color = generateColor();
-        
+
+
         Object.keys(sockets).forEach(function (k) {
             var v = sockets[k];
+            if(v == ws)
+            {
+                if(reportSocket)
+                {
+                    //Report to TCP socket what client pressed a button
+                    reportSocket.write('Client: ' + k + ' Sent color: ' + color + ' To Clients \r\n' );
+                }
+            }
+            else
+            {
+                console.log("v is " + v + "this is " + ws );
+            }
             if (v) {
                 console.log("sending " + color + " to client with id " + k);
                 v.send(color);
@@ -73,6 +109,6 @@ function generateColor() {
     return c;
 }
 
-
+console.log("report socket on " + config.reportHost + ":" + config.reportPort);
 console.log("websocket server listening to port " + config.wsPort);
 
